@@ -18,13 +18,13 @@
         padding: 6px 8px; 
         font: 14px/16px Arial, Helvetica, sans-serif; 
         background: white; 
-        background: rgba(255,255,255,0.9); /* ปรับความทึบแสงเล็กน้อย */
+        background: rgba(255,255,255,0.9);
         box-shadow: 0 0 15px rgba(0,0,0,0.2); 
         border-radius: 5px; 
         } 
 
-        .info h4 { margin: 0 0 5px; color: #333; } /* ปรับสีตัวอักษร */
-        .info b { color: #0066cc; } /* สีเน้นชื่อจังหวัด */
+        .info h4 { margin: 0 0 5px; color: #333; } 
+        .info b { color: #0066cc; } 
 
         .legend { 
         text-align: left; 
@@ -39,10 +39,39 @@
         margin-right:8px; 
         opacity: 0.7; 
         }
+        
+        /* สไตล์สำหรับช่องค้นหา */
+        .search-box {
+            position: absolute;
+            top: 20px; /* ตำแหน่งด้านบน */
+            left: 50%; /* จัดกึ่งกลาง */
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 300px; /* ปรับขนาดตามต้องการ */
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #0066cc;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .search-input:focus {
+            border-color: #004080;
+        }
     </style>
 </head>
 <body>
+    <div class="search-box">
+        <input type="text" id="provinceSearch" class="search-input" placeholder="ค้นหาจังหวัด...">
+    </div>
+
     <div id="mapid"></div> 
+</body>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -173,5 +202,32 @@
         };
 
         legend.addTo(map);
+        
+        // ## ฟังก์ชันค้นหาจังหวัด
+        document.getElementById('provinceSearch').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                var searchText = this.value.trim().toLowerCase();
+                if (!searchText) return;
+                
+                var foundLayer = null;
+
+                geojson.eachLayer(function(layer) {
+                    var props = layer.feature.properties;
+                    // ค้นหาโดยไม่สนใจขนาดตัวอักษร
+                    if (props && props.name && props.name.toLowerCase().indexOf(searchText) !== -1) {
+                        foundLayer = layer;
+                        return; // หยุดการวนลูปเมื่อเจอ
+                    }
+                });
+
+                if (foundLayer) {
+                    map.flyToBounds(foundLayer.getBounds(), {duration: 1.0, padding: [100, 100]}); // ซูมไปยังจังหวัดที่พบ
+                    foundLayer.fire('mouseover'); // แสดงข้อมูลจังหวัด
+                } else {
+                    alert('ไม่พบจังหวัด "' + this.value + '"');
+                }
+            }
+        });
+
     </script>
 </html>
