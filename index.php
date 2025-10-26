@@ -52,7 +52,7 @@
         .search-input {
             width: 100%;
             padding: 10px 15px;
-            border: 2px solid #0066cc;
+            border: 2px solid #9e9e9eff;
             border-radius: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.15);
             font-size: 16px;
