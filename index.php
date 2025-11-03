@@ -273,6 +273,26 @@
     </div>
 
     <div class="info_container" id="infoContainer">
+        <div class="msme_info msmetotal">
+            <div class="icon_box">
+                <img src="https://via.placeholder.com/50x50?text=T" alt="Total" style="height: 50px;">
+            </div>
+            <div class="info_box">
+                <div class="msme_title">ธุรกิจ MSME ทั้งหมด</div>
+                <div class="msme_count" id="msmetotalCount">-</div>
+                <div class="container_maxmin">
+                    <div class="mm-box">
+                        <div class="msme_title">สูงสุด</div>
+                        <div class="msme_count_mm" id="msmetotalMax">-</div>
+                    </div>
+                    <div class="mm-box">
+                        <div class="msme_title">ต่ำสุด</div>
+                        <div class="msme_count_mm" id="msmetotalMin">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="msme_info micro">
             <div class="icon_box">
                 <img src="https://via.placeholder.com/50x50?text=M" alt="Micro" style="height: 50px;">
@@ -383,6 +403,8 @@
         });
 
         // คำนวณค่าสูงสุดและต่ำสุดสำหรับแต่ละประเภทธุรกิจ
+        var maxMSMETotal = { value: -Infinity, province: '-' };
+        var minMSMETotal = { value: Infinity, province: '-' };
         var maxMicro = { value: -Infinity, province: '-' };
         var minMicro = { value: Infinity, province: '-' };
         var maxSmall = { value: -Infinity, province: '-' };
@@ -396,6 +418,16 @@
             var p = f.properties;
             if (!p) return;
             
+            // MSME Total
+            if (Number(p.MSME_TOTAL_2567) > maxMSMETotal.value) {
+                maxMSMETotal.value = Number(p.MSME_TOTAL_2567);
+                maxMSMETotal.province = p.name;
+            }
+            if (Number(p.MSME_TOTAL_2567) < minMSMETotal.value) {
+                minMSMETotal.value = Number(p.MSME_TOTAL_2567);
+                minMSMETotal.province = p.name;
+            }
+
             // Micro
             if (Number(p.MSME_MICRO_2567) > maxMicro.value) {
                 maxMicro.value = Number(p.MSME_MICRO_2567);
@@ -439,6 +471,8 @@
 
         // อัพเดทข้อมูลในกล่องข้อมูล
         function updateMSMEInfo(props) {
+            document.getElementById('msmetotalCount').textContent =
+                props ? format(Number(props.MSME_TOTAL_2567)) + ' ราย' : '-';
             document.getElementById('microCount').textContent =
                 props ? format(Number(props.MSME_MICRO_2567)) + ' ราย' : '-';
             document.getElementById('smallCount').textContent =
@@ -447,6 +481,11 @@
                 props ? format(Number(props.MSME_M_2567)) + ' ราย' : '-';
             document.getElementById('largeCount').textContent =
                 props ? format(Number(props.MSME_L_2567)) + ' ราย' : '-';
+
+            document.getElementById('msmetotalMax').textContent =
+                format(maxMSMETotal.value) + ' ราย (' + maxMSMETotal.province + ')';
+            document.getElementById('msmetotalMin').textContent =
+                format(minMSMETotal.value) + ' ราย (' + minMSMETotal.province + ')';
 
             document.getElementById('microMax').textContent =
                 format(maxMicro.value) + ' ราย (' + maxMicro.province + ')';
