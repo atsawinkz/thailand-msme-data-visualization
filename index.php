@@ -1,11 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thai MSME Choropleth Map</title>
+    <title>แผนที่จำนวนธุรกิจ MSME ประเทศไทย</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    
     <style>
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+            font-family: 'Prompt', sans-serif;
+        }
+        
         #mapid {
             height: 100vh;
             width: 100vw;
@@ -13,70 +27,346 @@
             top: 0;
             left: 0;
         }
+        
+        .header, .map-card {
+            position: absolute;
+            z-index: 1001;
+        }
+        
+        .header {
+            top: 0;
+            left: 0;
+            width: 100vw;
+            background-color: #ffffff;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .map-card {
+            top: 100px;
+            left: 40px;
+            max-width: 420px;
+            width: 90vw;
+            box-sizing: border-box;
+            background: #eaf3fb54;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(74,108,247,0.08);
+            padding: 32px 32px 24px 32px;
+        }
+        
+        @media (max-width: 600px) {
+            .map-card {
+                top: 60px;
+                left: 10px;
+                max-width: 98vw;
+                padding: 16px 8px 12px 8px;
+            }
+            .header {
+                font-size: 18px;
+                padding: 6px;
+            }
+            .logo img {
+                height: 32px;
+            }
+        }
+        
+        .prompt-regular {
+            font-family: "Prompt", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+        
+        .prompt-light {
+            font-family: "Prompt", sans-serif;
+            font-weight: 300;
+            font-style: normal;
+        }
 
         .info { 
-        padding: 6px 8px; 
-        font: 14px/16px Arial, Helvetica, sans-serif; 
-        background: white; 
-        background: rgba(255,255,255,0.9);
-        box-shadow: 0 0 15px rgba(0,0,0,0.2); 
-        border-radius: 5px; 
+            padding: 6px 8px; 
+            font: 14px/16px Arial, Helvetica, sans-serif; 
+            background: white; 
+            background: rgba(255,255,255,0.8); 
+            box-shadow: 0 0 15px rgba(0,0,0,0.2); 
+            border-radius: 5px; 
         } 
 
-        .info h4 { margin: 0 0 5px; color: #333; } 
-        .info b { color: #0066cc; } 
+        .info h4 { 
+            margin: 0 0 5px; 
+            color: #777; 
+        }
 
         .legend { 
-        text-align: left; 
-        line-height: 18px; 
-        color: #555; 
+            text-align: left; 
+            line-height: 18px; 
+            color: #555; 
         } 
 
         .legend i { 
-        width: 18px; 
-        height: 18px; 
-        float: left; 
-        margin-right:8px; 
-        opacity: 0.7; 
+            width: 18px; 
+            height: 18px; 
+            float: left; 
+            margin-right:8px; 
+            opacity: 0.7; 
+        }
+
+        .logo {
+            padding: 0px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        /* สไตล์สำหรับช่องค้นหา */
-        .search-box {
-            position: absolute;
-            top: 20px; /* ตำแหน่งด้านบน */
-            left: 50%; /* จัดกึ่งกลาง */
-            transform: translateX(-50%);
-            z-index: 1000;
-            width: 300px; /* ปรับขนาดตามต้องการ */
+        .logo img {
+            height: 50px;
+            margin-left: 10px;
         }
-        .search-input {
+        
+        /* From Uiverse.io by ErzenXz */ 
+        .input {
             width: 100%;
-            padding: 10px 15px;
-            border: 2px solid #9e9e9eff;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-            font-size: 16px;
-            box-sizing: border-box;
+            height: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1.5px solid lightgrey;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+            box-shadow: 0px 0px 20px -18px;
         }
-        .search-input:focus {
-            border-color: #004080;
+
+        .input:hover {
+            border: 2px solid lightgrey;
+            box-shadow: 0px 0px 20px -17px;
+        }
+
+        .input:active {
+            transform: scale(0.95);
+        }
+
+        .input:focus {
+            border: 2px solid grey;
+        }
+
+        .map-card-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #095d7e;
+            margin-bottom: 18px;
+            line-height: 1.2;
+        }
+
+        .map-card-desc {
+            font-size: 1rem;
+            color: #3a4a6b;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .info_container {
+            position: absolute;
+            top: 350px;
+            left: 40px;
+            z-index: 1000;
+            border-radius: 18px;
+            width: 420px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .msme_info {
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 1rem;
+            color: #000000ff;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+            gap: 12px;
+        }
+
+        .msme_info img {
+            padding-top: 15px;
+        }
+        
+        .icon_box {
+            flex: 0 0 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .info_box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 10px;
+        }
+        
+        .msme_title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        
+        .msme_count {
+            font-size: 25px;
+            color: #000000ff;
+            font-weight: 700;
+        }
+        
+        .micro {
+            background: #19b79aff;
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+        }
+        
+        .small {
+            background: #1694c6ff;
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+        }
+        
+        .medium {
+            background: #ccecee;
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+        }
+        
+        .large {
+            background: #f1f9ff;
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+        }
+        
+        .text_info_container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container_maxmin {
+            display: flex;
+            flex-direction: row;
+        }
+        
+        .mm-box {
+            margin-top: 2px;
+            border-top: 1px solid #111;
+            padding-top: 5px;
+            padding-right: 5px;
         }
     </style>
 </head>
 <body>
-    <div class="search-box">
-        <input type="text" id="provinceSearch" class="search-input" placeholder="ค้นหาจังหวัด...">
+    <div class="header">
+        <div class="logo">
+            <a href="#" target="_blank">
+                <img src="https://via.placeholder.com/150x50?text=MSME+Logo" alt="MSME Logo" />
+            </a>
+        </div>
+    </div>
+    
+    <div class="map-card">
+        <div class="map-card-title prompt-light">จำนวนธุรกิจ MSME ปี 2567 <br>แบ่งตามขนาดธุรกิจ</div>
+        <input placeholder="ค้นหาจังหวัด..." type="text" name="text" class="input" id="provinceSearch">        
     </div>
 
-    <div id="mapid"></div> 
+    <div class="info_container" id="infoContainer">
+        <div class="msme_info micro">
+            <div class="icon_box">
+                <img src="https://via.placeholder.com/50x50?text=M" alt="Micro" style="height: 50px;">
+            </div>
+            <div class="info_box">
+                <div class="msme_title">ธุรกิจขนาดไมโคร</div>
+                <div class="msme_count" id="microCount">-</div>
+                <div class="container_maxmin">
+                    <div class="mm-box">
+                        <div class="msme_title">สูงสุด</div>
+                        <div class="msme_count_mm" id="microMax">-</div>
+                    </div>
+                    <div class="mm-box">
+                        <div class="msme_title">ต่ำสุด</div>
+                        <div class="msme_count_mm" id="microMin">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="msme_info small">
+            <div class="icon_box">
+                <img src="https://via.placeholder.com/50x50?text=S" alt="Small" style="height: 50px;">
+            </div>
+            <div class="info_box">
+                <div class="msme_title">ธุรกิจขนาดเล็ก</div>
+                <div class="msme_count" id="smallCount">-</div>
+                <div class="container_maxmin">
+                    <div class="mm-box">
+                        <div class="msme_title">สูงสุด</div>
+                        <div class="msme_count_mm" id="smallMax">-</div>
+                    </div>
+                    <div class="mm-box">
+                        <div class="msme_title">ต่ำสุด</div>
+                        <div class="msme_count_mm" id="smallMin">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="msme_info medium">
+            <div class="icon_box">
+                <img src="https://via.placeholder.com/50x50?text=M" alt="Medium" style="height: 50px;">
+            </div>
+            <div class="info_box">
+                <div class="msme_title">ธุรกิจขนาดกลาง</div>
+                <div class="msme_count" id="mediumCount">-</div>
+                <div class="container_maxmin">
+                    <div class="mm-box">
+                        <div class="msme_title">สูงสุด</div>
+                        <div class="msme_count_mm" id="mediumMax">-</div>
+                    </div>
+                    <div class="mm-box">
+                        <div class="msme_title">ต่ำสุด</div>
+                        <div class="msme_count_mm" id="mediumMin">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="msme_info large">
+            <div class="icon_box">
+                <img src="https://via.placeholder.com/50x50?text=L" alt="Large" style="height: 50px;">
+            </div>
+            <div class="info_box">
+                <div class="msme_title">ธุรกิจขนาดใหญ่</div>
+                <div class="msme_count" id="largeCount">-</div>
+                <div class="container_maxmin">
+                    <div class="mm-box">
+                        <div class="msme_title">สูงสุด</div>
+                        <div class="msme_count_mm" id="largeMax">-</div>
+                    </div>
+                    <div class="mm-box">
+                        <div class="msme_title">ต่ำสุด</div>
+                        <div class="msme_count_mm" id="largeMin">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mapid"></div>    
 </body>
-    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     
     <script>
+        // ฟังก์ชันจัดรูปแบบตัวเลข
+        function format(num) {
+            if (typeof num !== 'number') return '-';
+            return num.toLocaleString();
+        }
+        
+        // โหลดข้อมูล GeoJSON
         var geojson_data;
         $.ajax({
             url: "./th_sme.json", 
@@ -92,45 +382,114 @@
             }
         });
 
-        var map = L.map('mapid').setView([13, 101.5], 5);
+        // คำนวณค่าสูงสุดและต่ำสุดสำหรับแต่ละประเภทธุรกิจ
+        var maxMicro = { value: -Infinity, province: '-' };
+        var minMicro = { value: Infinity, province: '-' };
+        var maxSmall = { value: -Infinity, province: '-' };
+        var minSmall = { value: Infinity, province: '-' };
+        var maxMedium = { value: -Infinity, province: '-' };
+        var minMedium = { value: Infinity, province: '-' };
+        var maxLarge = { value: -Infinity, province: '-' };
+        var minLarge = { value: Infinity, province: '-' };
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-        }).addTo(map);
+        geojson_data.features.forEach(function(f) {
+            var p = f.properties;
+            if (!p) return;
+            
+            // Micro
+            if (Number(p.MSME_MICRO_2567) > maxMicro.value) {
+                maxMicro.value = Number(p.MSME_MICRO_2567);
+                maxMicro.province = p.name;
+            }
+            if (Number(p.MSME_MICRO_2567) < minMicro.value) {
+                minMicro.value = Number(p.MSME_MICRO_2567);
+                minMicro.province = p.name;
+            }
+            
+            // Small
+            if (Number(p.MSME_S_2567) > maxSmall.value) {
+                maxSmall.value = Number(p.MSME_S_2567);
+                maxSmall.province = p.name;
+            }
+            if (Number(p.MSME_S_2567) < minSmall.value) {
+                minSmall.value = Number(p.MSME_S_2567);
+                minSmall.province = p.name;
+            }
+            
+            // Medium
+            if (Number(p.MSME_M_2567) > maxMedium.value) {
+                maxMedium.value = Number(p.MSME_M_2567);
+                maxMedium.province = p.name;
+            }
+            if (Number(p.MSME_M_2567) < minMedium.value) {
+                minMedium.value = Number(p.MSME_M_2567);
+                minMedium.province = p.name;
+            }
+            
+            // Large
+            if (Number(p.MSME_L_2567) > maxLarge.value) {
+                maxLarge.value = Number(p.MSME_L_2567);
+                maxLarge.province = p.name;
+            }
+            if (Number(p.MSME_L_2567) < minLarge.value) {
+                minLarge.value = Number(p.MSME_L_2567);
+                minLarge.province = p.name;
+            }
+        });
 
-        var info = L.control();
+        // อัพเดทข้อมูลในกล่องข้อมูล
+        function updateMSMEInfo(props) {
+            document.getElementById('microCount').textContent =
+                props ? format(Number(props.MSME_MICRO_2567)) + ' ราย' : '-';
+            document.getElementById('smallCount').textContent =
+                props ? format(Number(props.MSME_S_2567)) + ' ราย' : '-';
+            document.getElementById('mediumCount').textContent =
+                props ? format(Number(props.MSME_M_2567)) + ' ราย' : '-';
+            document.getElementById('largeCount').textContent =
+                props ? format(Number(props.MSME_L_2567)) + ' ราย' : '-';
 
-        info.onAdd = function (map) {
-        this._div = L.DomUtil.create('div', 'info');
-        this.update();
-        return this._div;
-        };
+            document.getElementById('microMax').textContent =
+                format(maxMicro.value) + ' ราย (' + maxMicro.province + ')';
+            document.getElementById('microMin').textContent =
+                format(minMicro.value) + ' ราย (' + minMicro.province + ')';
 
-        info.update = function (props) {
-            this._div.innerHTML = '<h4>จำนวน MSME ปี 2567 (ราย)</h4>' + 
-                (props ? 
-                '<b>' + props.name + '</b><br />' + 
-                'รวมทั้งหมด: <b>' + (props.MSME_TOTAL_2567 ? props.MSME_TOTAL_2567.toLocaleString() : 'N/A') + '</b><hr style="margin: 5px 0;">' +
-                'Micro: ' + (props.MSME_MICRO_2567 ? props.MSME_MICRO_2567.toLocaleString() : '0') + '<br>' +
-                'Small: ' + (props.MSME_S_2567 ? props.MSME_S_2567.toLocaleString() : '0') + '<br>' +
-                'Medium: ' + (props.MSME_M_2567 ? props.MSME_M_2567.toLocaleString() : '0') + '<br>' +
-                'Large: ' + (props.MSME_L_2567 ? props.MSME_L_2567.toLocaleString() : '0')
-                : 'ชี้ที่จังหวัดเพื่อดูข้อมูล');
-        };
+            document.getElementById('smallMax').textContent =
+                format(maxSmall.value) + ' ราย (' + maxSmall.province + ')';
+            document.getElementById('smallMin').textContent =
+                format(minSmall.value) + ' ราย (' + minSmall.province + ')';
 
-        info.addTo(map);
+            document.getElementById('mediumMax').textContent =
+                format(maxMedium.value) + ' ราย (' + maxMedium.province + ')';
+            document.getElementById('mediumMin').textContent =
+                format(minMedium.value) + ' ราย (' + minMedium.province + ')';
 
-        function getColor(d) {
-        return  d > 150000 ? '#08306b' :
-                d > 90000 ? '#08519c' :
-                d > 60000 ? '#2171b5' :
-                d > 30000 ? '#4292c6' :
-                d > 15000 ? '#6baed6' :
-                d > 8000 ? '#9ecae1' :
-                d > 5000 ? '#c6dbef' :
-                '#eff3ff';
+            document.getElementById('largeMax').textContent =
+                format(maxLarge.value) + ' ราย (' + maxLarge.province + ')';
+            document.getElementById('largeMin').textContent =
+                format(minLarge.value) + ' ราย (' + minLarge.province + ')';
         }
 
+        // สร้างแผนที่
+        var map = L.map('mapid').setView([13, 101.5], 5);
+
+        // เพิ่มแผนที่พื้นหลัง
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://carto.com/">CartoDB</a>'
+        }).addTo(map);
+
+        // กำหนดสีตามจำนวนธุรกิจทั้งหมด
+        function getColor(d) {
+            return  d > 150000 ? '#08306b' :
+                    d > 90000 ? '#08519c' :
+                    d > 60000 ? '#2171b5' :
+                    d > 30000 ? '#4292c6' :
+                    d > 15000 ? '#6baed6' :
+                    d > 8000 ? '#9ecae1' :
+                    d > 5000 ? '#c6dbef' :
+                    '#eff3ff';
+        }
+
+        // กำหนดสไตล์ให้กับแต่ละจังหวัด
         function style(feature) {
             return {
                 fillColor: getColor(feature.properties.MSME_TOTAL_2567),
@@ -142,92 +501,95 @@
             };
         }
 
+        // ฟังก์ชันเมื่อโฮเวอร์เหนือจังหวัด
         function highlightFeature(e) {
-        var layer = e.target;
-        layer.setStyle({
-            weight: 5,
-            color: '#666',
-            dashArray: '',
-            fillOpacity: 0.7
-        });
-        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-            layer.bringToFront();
-        }
-        info.update(layer.feature.properties);
+            var layer = e.target;
+            layer.setStyle({
+                weight: 2,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+            updateMSMEInfo(layer.feature.properties);
         }
 
-        var geojson;
-
+        // ฟังก์ชันเมื่อออกจากจังหวัด
         function resetHighlight(e) {
-        geojson.resetStyle(e.target);
-        info.update();
+            geojson.resetStyle(e.target);
         }
 
+        // ฟังก์ชันเมื่อคลิกจังหวัด
         function zoomToFeature(e) {
-        map.fitBounds(e.target.getBounds());
+            map.fitBounds(e.target.getBounds());
         }
 
+        // เพิ่มฟังก์ชันให้กับแต่ละจังหวัด
         function onEachFeature(feature, layer) {
-        layer.on({
-            mouseover: highlightFeature,
-            mouseout: resetHighlight,
-            click: zoomToFeature
-        });
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: zoomToFeature
+            });
         }
 
-        geojson = L.geoJson(geojson_data, {
-        style: style,
-        onEachFeature: onEachFeature
+        // เพิ่ม GeoJSON ลงในแผนที่
+        var geojson = L.geoJson(geojson_data, {
+            style: style,
+            onEachFeature: onEachFeature
         }).addTo(map);
 
+        // เพิ่ม legend
         var legend = L.control({position: 'bottomright'});
 
         legend.onAdd = function (map) {
-        var div = L.DomUtil.create('div', 'info legend'),
-            grades = [0, 5000, 8000, 15000, 30000, 60000, 90000, 150000],
-            labels = [],
-            from, to;
+            var div = L.DomUtil.create('div', 'info legend'),
+                grades = [0, 5000, 8000, 15000, 30000, 60000, 90000, 150000],
+                labels = [],
+                from, to;
 
-        for (var i = 0; i < grades.length; i++) {
-            from = grades[i];
-            to = grades[i + 1];
+            for (var i = 0; i < grades.length; i++) {
+                from = grades[i];
+                to = grades[i + 1];
 
-            labels.push(
-            '<i style="background:' + getColor(from + 1) + '"></i> ' +
-            from.toLocaleString() + (to ? '&ndash;' + to.toLocaleString() : '+'));
-        }
+                labels.push(
+                '<i style="background:' + getColor(from + 1) + '"></i> ' +
+                from.toLocaleString() + (to ? '&ndash;' + to.toLocaleString() : '+'));
+            }
 
-        div.innerHTML = labels.join('<br>');
-        return div;
+            div.innerHTML = labels.join('<br>');
+            return div;
         };
 
         legend.addTo(map);
         
-        // ## ฟังก์ชันค้นหาจังหวัด
+        // อัพเดทข้อมูลเริ่มต้น
+        updateMSMEInfo(null);
+
+        // ฟังก์ชันค้นหาและซูมไปยังจังหวัด
         document.getElementById('provinceSearch').addEventListener('keyup', function(e) {
             if (e.key === 'Enter') {
-                var searchText = this.value.trim().toLowerCase();
+                var searchText = this.value.trim();
                 if (!searchText) return;
                 
-                var foundLayer = null;
-
+                var found = false;
                 geojson.eachLayer(function(layer) {
                     var props = layer.feature.properties;
-                    // ค้นหาโดยไม่สนใจขนาดตัวอักษร
-                    if (props && props.name && props.name.toLowerCase().indexOf(searchText) !== -1) {
-                        foundLayer = layer;
-                        return; // หยุดการวนลูปเมื่อเจอ
+                    // ค้นหาจากชื่อจังหวัด
+                    if (props && props.name && props.name.indexOf(searchText) !== -1) {
+                        map.flyToBounds(layer.getBounds(), {duration: 1.5});
+                        layer.fire('mouseover');
+                        updateMSMEInfo(props);
+                        found = true;
                     }
                 });
-
-                if (foundLayer) {
-                    map.flyToBounds(foundLayer.getBounds(), {duration: 1.0, padding: [100, 100]}); // ซูมไปยังจังหวัดที่พบ
-                    foundLayer.fire('mouseover'); // แสดงข้อมูลจังหวัด
-                } else {
+                
+                if (!found) {
                     alert('ไม่พบจังหวัด "' + this.value + '"');
                 }
             }
         });
-
     </script>
 </html>
