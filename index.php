@@ -278,6 +278,21 @@
             box-sizing: border-box;
             overflow: hidden;
         }
+        /* สไตล์สำหรับกราฟโดนัท */
+        .chart-container-doughnut {
+            position: absolute;
+            top: 520px;
+            right: 20px;
+            width: 550px;
+            height: 450px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
 
         .chart-title {
             font-size: 18px;
@@ -297,6 +312,10 @@
                 width: 500px;
                 height: 400px;
             }
+            .chart-container-doughnut {
+                width: 500px;
+                height: 400px;
+            }
         }
 
         @media (max-width: 768px) {
@@ -308,6 +327,37 @@
                 height: 350px;
                 margin: 20px;
             }
+            .chart-container-doughnut {
+                position: relative;
+                top: auto;
+                right: auto;
+                width: calc(100% - 40px);
+                height: 350px;
+                margin: 20px;
+            }
+        }
+
+        .doughnut-chart {
+            width: 600px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .chart-title-doughnut {
+            font-size: 18px;
+            font-weight: 600;
+            color: #095d7e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #sizeDistributionChart {
+            width: 100%;
+            height: calc(100% - 40px);
         }
     </style>
 </head>
@@ -431,6 +481,12 @@
     <div class="chart-container">
         <div class="chart-title">10 จังหวัดที่มีธุรกิจ MSME มากที่สุด</div>
         <div id="top10Chart"></div>
+    </div>
+
+    <!-- แผนภูมิโดนัท -->
+    <div class="chart-container-doughnut doughnut-chart">
+        <div class="chart-title-doughnut" id="doughnutTitle">สัดส่วนขนาดธุรกิจ MSME</div>
+        <div id="sizeDistributionChart"></div>
     </div>
 
     <div id="mapid"></div>    
@@ -628,11 +684,13 @@
                 layer.bringToFront();
             }
             updateMSMEInfo(layer.feature.properties);
+            drawSizeDistributionDoughnutChart(layer.feature.properties);
         }
 
         // ฟังก์ชันเมื่อออกจากจังหวัด
         function resetHighlight(e) {
             geojson.resetStyle(e.target);
+            drawSizeDistributionDoughnutChart();
         }
 
         // ฟังก์ชันเมื่อคลิกจังหวัด
@@ -696,6 +754,7 @@
                         map.flyToBounds(layer.getBounds(), {duration: 1.5});
                         layer.fire('mouseover');
                         updateMSMEInfo(props);
+                        drawSizeDistributionDoughnutChart(props);
                         found = true;
                     }
                 });
@@ -761,8 +820,79 @@
             chart.draw(data, options);
         }
 
+        // ฟังก์ชันสร้างแผนภูมิโดนัทแสดงสัดส่วนขนาดธุรกิจ
+        function drawSizeDistributionDoughnutChart(provinceData = null) {
+            var data, title;
+            
+            if (provinceData) {
+                // แสดงข้อมูลจังหวัดที่เลือก
+                data = [
+                    ['ขนาดไมโคร', Number(provinceData.MSME_MICRO_2567)],
+                    ['ขนาดเล็ก', Number(provinceData.MSME_S_2567)],
+                    ['ขนาดกลาง', Number(provinceData.MSME_M_2567)],
+                    ['ขนาดใหญ่', Number(provinceData.MSME_L_2567)]
+                ];
+                title = `สัดส่วนขนาดธุรกิจ: ${provinceData.name}`;
+            } else {
+                // แสดงข้อมูลรวมทั้งประเทศ
+                var totalMicro = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_MICRO_2567), 0);
+                var totalSmall = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_S_2567), 0);
+                var totalMedium = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_M_2567), 0);
+                var totalLarge = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_L_2567), 0);
+                
+                data = [
+                    ['ขนาดไมโคร', totalMicro],
+                    ['ขนาดเล็ก', totalSmall],
+                    ['ขนาดกลาง', totalMedium],
+                    ['ขนาดใหญ่', totalLarge]
+                ];
+                title = 'สัดส่วนขนาดธุรกิจ MSME ทั้งประเทศ';
+            }
+            
+            document.getElementById('doughnutTitle').textContent = title;
+            
+            var chartData = google.visualization.arrayToDataTable([
+                ['ขนาด', 'จำนวน'],
+                ...data
+            ]);
+            
+            var options = {
+                title: '',
+                pieHole: 0.4,
+                pieSliceText: 'value',
+                slices: {
+                    0: { color: '#87CEFA' },
+                    1: { color: '#87CEEB' },
+                    2: { color: '#ccecee' },
+                    3: { color: '#f1f9ff' }
+                },
+                legend: {
+                    position: 'labeled',
+                    textStyle: {
+                        fontSize: 12,
+                        fontName: 'Prompt'
+                    }
+                },
+                tooltip: {
+                    text: 'percentage'
+                },
+                chartArea: {
+                    left: 20,
+                    top: 20,
+                    width: '90%',
+                    height: '80%'
+                }
+            };
+            
+            var chart = new google.visualization.PieChart(document.getElementById('sizeDistributionChart'));
+            chart.draw(chartData, options);
+        }
+
         // โหลด Google Charts และสร้างกราฟ
         google.charts.load('current', {packages: ['corechart', 'bar']});
-        google.charts.setOnLoadCallback(drawTop10Chart);
+        google.charts.setOnLoadCallback(function() {
+            drawTop10Chart();
+            drawSizeDistributionDoughnutChart();
+        });
     </script>
 </html>
