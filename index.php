@@ -262,6 +262,53 @@
             padding-top: 5px;
             padding-right: 5px;
         }
+
+        /* สไตล์สำหรับกราฟ */
+        .chart-container {
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            width: 550px;
+            height: 450px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #095d7e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #top10Chart {
+            width: 100%;
+            height: calc(100% - 40px);
+        }
+
+        @media (max-width: 1200px) {
+            .chart-container {
+                width: 500px;
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                width: calc(100% - 40px);
+                height: 350px;
+                margin: 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -380,10 +427,17 @@
         </div>
     </div>
 
+    <!-- Container สำหรับกราฟ -->
+    <div class="chart-container">
+        <div class="chart-title">10 จังหวัดที่มีธุรกิจ MSME มากที่สุด</div>
+        <div id="top10Chart"></div>
+    </div>
+
     <div id="mapid"></div>    
 </body>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     
     <script>
         // ฟังก์ชันจัดรูปแบบตัวเลข
@@ -420,9 +474,22 @@
         var maxLarge = { value: -Infinity, province: '-' };
         var minLarge = { value: Infinity, province: '-' };
 
+        // เก็บข้อมูลจังหวัดทั้งหมดเพื่อใช้สร้างกราฟ
+        var provincesData = [];
+
         geojson_data.features.forEach(function(f) {
             var p = f.properties;
             if (!p) return;
+            
+            // เพิ่มข้อมูลจังหวัดลงในอาร์เรย์สำหรับกราฟ
+            provincesData.push({
+                name: p.name,
+                total: Number(p.MSME_TOTAL_2567),
+                // micro: Number(p.MSME_MICRO_2567),
+                // small: Number(p.MSME_S_2567),
+                // medium: Number(p.MSME_M_2567),
+                // large: Number(p.MSME_L_2567)
+            });
             
             // MSME Total
             if (Number(p.MSME_TOTAL_2567) > maxMSMETotal.value) {
@@ -638,5 +705,64 @@
                 }
             }
         });
+
+        // ฟังก์ชันสร้างกราฟ Top 10 จังหวัด
+        function drawTop10Chart() {
+            // เรียงลำดับจังหวัดตามจำนวนธุรกิจทั้งหมดจากมากไปน้อย
+            var sortedProvinces = provincesData.sort(function(a, b) {
+                return b.total - a.total;
+            });
+            
+            // เลือกมาเฉพาะ 10 อันดับแรก
+            var top10 = sortedProvinces.slice(0, 10);
+            
+            // สร้างข้อมูลสำหรับกราฟ
+            var chartData = [['จังหวัด', 'จำนวนธุรกิจ', { role: 'annotation' }]];
+            
+            top10.forEach(function(province) {
+                chartData.push([
+                    province.name, 
+                    province.total, 
+                    province.total.toLocaleString() + ' ราย',
+                ]);
+            });
+            
+            // สร้างกราฟ
+            var data = google.visualization.arrayToDataTable(chartData);
+            
+            var options = {
+                title: '',
+                chartArea: { 
+                    width: '65%',
+                    height: '80%',
+                    left: 130,
+                    top: 30,
+                    bottom: 30
+                },
+                hAxis: { 
+                    title: 'จำนวนธุรกิจ',
+                    minValue: 0,
+                    format: 'short'
+                },
+                vAxis: { 
+                    title: '',
+                    textStyle: {
+                        fontSize: 12
+                    }
+                },
+                bar: { 
+                    groupWidth: '70%' 
+                },
+                colors: ['#1694c6'],
+                legend: { position: 'none' }
+            };
+
+            var chart = new google.visualization.BarChart(document.getElementById('top10Chart'));
+            chart.draw(data, options);
+        }
+
+        // โหลด Google Charts และสร้างกราฟ
+        google.charts.load('current', {packages: ['corechart', 'bar']});
+        google.charts.setOnLoadCallback(drawTop10Chart);
     </script>
 </html>
