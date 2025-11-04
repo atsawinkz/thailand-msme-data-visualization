@@ -43,9 +43,9 @@
         }
         
         .map-card {
-            top: 100px;
-            left: 40px;
-            max-width: 420px;
+            top: 50px;
+            left: 50px;
+            max-width: 450px;
             width: 90vw;
             box-sizing: border-box;
             background: #eaf3fb54;
@@ -164,8 +164,8 @@
 
         .info_container {
             position: absolute;
-            top: 350px;
-            left: 40px;
+            top: 290px;
+            left: 50px;
             z-index: 1000;
             border-radius: 18px;
             width: 420px;
@@ -217,6 +217,12 @@
             color: #000000ff;
             font-weight: 700;
         }
+
+        .msmetotal {
+            background: #ffeb3b;
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+            grid-column: 1 / -1; /* ทำให้เต็มความกว้าง */
+        }
         
         .micro {
             background: #19b79aff;
@@ -259,13 +265,13 @@
     </style>
 </head>
 <body>
-    <div class="header">
+    <!-- <div class="header">
         <div class="logo">
             <a href="#" target="_blank">
                 <img src="https://via.placeholder.com/150x50?text=MSME+Logo" alt="MSME Logo" />
             </a>
         </div>
-    </div>
+    </div> -->
     
     <div class="map-card">
         <div class="map-card-title prompt-light">จำนวนธุรกิจ MSME ปี 2567 <br>แบ่งตามขนาดธุรกิจ</div>
@@ -275,10 +281,10 @@
     <div class="info_container" id="infoContainer">
         <div class="msme_info msmetotal">
             <div class="icon_box">
-                <img src="https://via.placeholder.com/50x50?text=T" alt="Total" style="height: 50px;">
+                <!-- <img src="https://via.placeholder.com/50x50?text=T" alt="Total" style="height: 50px;"> -->
             </div>
             <div class="info_box">
-                <div class="msme_title">ธุรกิจ MSME ทั้งหมด</div>
+                <div class="msme_title">ธุรกิจ MSME ทั้งหมดของจังหวัด <b id="provinceNameTitle">-</b></div>
                 <div class="msme_count" id="msmetotalCount">-</div>
                 <div class="container_maxmin">
                     <div class="mm-box">
@@ -295,7 +301,7 @@
 
         <div class="msme_info micro">
             <div class="icon_box">
-                <img src="https://via.placeholder.com/50x50?text=M" alt="Micro" style="height: 50px;">
+                <!-- <img src="https://via.placeholder.com/50x50?text=M" alt="Micro" style="height: 50px;"> -->
             </div>
             <div class="info_box">
                 <div class="msme_title">ธุรกิจขนาดไมโคร</div>
@@ -315,7 +321,7 @@
         
         <div class="msme_info small">
             <div class="icon_box">
-                <img src="https://via.placeholder.com/50x50?text=S" alt="Small" style="height: 50px;">
+                <!-- <img src="https://via.placeholder.com/50x50?text=S" alt="Small" style="height: 50px;"> -->
             </div>
             <div class="info_box">
                 <div class="msme_title">ธุรกิจขนาดเล็ก</div>
@@ -335,7 +341,7 @@
         
         <div class="msme_info medium">
             <div class="icon_box">
-                <img src="https://via.placeholder.com/50x50?text=M" alt="Medium" style="height: 50px;">
+                <!-- <img src="https://via.placeholder.com/50x50?text=M" alt="Medium" style="height: 50px;"> -->
             </div>
             <div class="info_box">
                 <div class="msme_title">ธุรกิจขนาดกลาง</div>
@@ -355,7 +361,7 @@
         
         <div class="msme_info large">
             <div class="icon_box">
-                <img src="https://via.placeholder.com/50x50?text=L" alt="Large" style="height: 50px;">
+                <!-- <img src="https://via.placeholder.com/50x50?text=L" alt="Large" style="height: 50px;"> -->
             </div>
             <div class="info_box">
                 <div class="msme_title">ธุรกิจขนาดใหญ่</div>
@@ -471,6 +477,8 @@
 
         // อัพเดทข้อมูลในกล่องข้อมูล
         function updateMSMEInfo(props) {
+            var provinceName = props ? props.name : 'กรุณาคลิกที่จังหวัด';
+            document.getElementById('provinceNameTitle').textContent = provinceName;
             document.getElementById('msmetotalCount').textContent =
                 props ? format(Number(props.MSME_TOTAL_2567)) + ' ราย' : '-';
             document.getElementById('microCount').textContent =
