@@ -219,18 +219,18 @@
         }
 
         .msmetotal {
-            background: #ffeb3b;
+            background: #4aa6ff;
             box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
             grid-column: 1 / -1; /* ทำให้เต็มความกว้าง */
         }
         
         .micro {
-            background: #19b79aff;
+            background: #87CEFA;
             box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
         }
         
         .small {
-            background: #1694c6ff;
+            background: #87CEEB;
             box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
         }
         
