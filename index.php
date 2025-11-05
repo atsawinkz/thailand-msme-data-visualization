@@ -318,7 +318,7 @@
             }
             .custom-map-legend {
                 bottom: 470px;
-                left: ;: 15px;
+                left: 15px;
                 min-width: 160px;
                 padding: 12px;
             }
@@ -416,13 +416,13 @@
             font-size: 12px;
             color: #333;
         }
-    }
+
     </style>
 </head>
 <body>
     
     <div class="map-card">
-        <div class="map-card-title prompt-light">จำนวนธุรกิจ MSME ปี 2567 <br>แบ่งตามขนาดธุรกิจ</div>
+        <a href="https://data.go.th/dataset/number-of-sme" target="_blank" class="map-card-title prompt-light" style="text-decoration: none; display: block;">จำนวนธุรกิจ MSME ปี 2567 <br>แบ่งตามขนาดธุรกิจ</a>
         <input placeholder="ค้นหาจังหวัด..." type="text" name="text" class="input" id="provinceSearch">        
     </div>
 
