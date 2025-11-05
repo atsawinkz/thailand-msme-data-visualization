@@ -316,6 +316,12 @@
                 width: 500px;
                 height: 400px;
             }
+            .custom-map-legend {
+                bottom: 470px;
+                left: ;: 15px;
+                min-width: 160px;
+                padding: 12px;
+            }
         }
 
         @media (max-width: 768px) {
@@ -334,6 +340,13 @@
                 width: calc(100% - 40px);
                 height: 350px;
                 margin: 20px;
+            }
+            .custom-map-legend {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                margin: 10px;
+                width: calc(100% - 40px);
             }
         }
 
@@ -359,16 +372,54 @@
             width: 100%;
             height: calc(100% - 40px);
         }
+
+        /* Custom Legend ที่ด้านซ้ายของแผนภูมิโดนัท */
+        .custom-map-legend {
+            position: absolute;
+            bottom: 25px;
+            left: 1070px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: 1px solid #ddd;
+            z-index: 1000;
+            min-width: 180px;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .legend-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #095d7e;
+            margin-bottom: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 2px;
+            margin-right: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .legend-label {
+            font-size: 12px;
+            color: #333;
+        }
+    }
     </style>
 </head>
 <body>
-    <!-- <div class="header">
-        <div class="logo">
-            <a href="#" target="_blank">
-                <img src="https://via.placeholder.com/150x50?text=MSME+Logo" alt="MSME Logo" />
-            </a>
-        </div>
-    </div> -->
     
     <div class="map-card">
         <div class="map-card-title prompt-light">จำนวนธุรกิจ MSME ปี 2567 <br>แบ่งตามขนาดธุรกิจ</div>
@@ -533,6 +584,9 @@
         // เก็บข้อมูลจังหวัดทั้งหมดเพื่อใช้สร้างกราฟ
         var provincesData = [];
 
+        // เพิ่มตัวแปรเก็บจังหวัดล่าสุด
+        var lastSelectedProvince = null;
+
         geojson_data.features.forEach(function(f) {
             var p = f.properties;
             if (!p) return;
@@ -541,10 +595,6 @@
             provincesData.push({
                 name: p.name,
                 total: Number(p.MSME_TOTAL_2567),
-                // micro: Number(p.MSME_MICRO_2567),
-                // small: Number(p.MSME_S_2567),
-                // medium: Number(p.MSME_M_2567),
-                // large: Number(p.MSME_L_2567)
             });
             
             // MSME Total
@@ -683,19 +733,35 @@
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
                 layer.bringToFront();
             }
-            updateMSMEInfo(layer.feature.properties);
-            drawSizeDistributionDoughnutChart(layer.feature.properties);
+            
+            // บันทึกจังหวัดล่าสุด
+            lastSelectedProvince = layer.feature.properties;
+            
+            updateMSMEInfo(lastSelectedProvince);
+            drawSizeDistributionDoughnutChart(lastSelectedProvince);
         }
 
         // ฟังก์ชันเมื่อออกจากจังหวัด
         function resetHighlight(e) {
             geojson.resetStyle(e.target);
-            drawSizeDistributionDoughnutChart();
+            
+            // ยังคงแสดงข้อมูลจังหวัดล่าสุด ไม่กลับไปแสดงข้อมูลทั้งประเทศ
+            if (lastSelectedProvince) {
+                updateMSMEInfo(lastSelectedProvince);
+                drawSizeDistributionDoughnutChart(lastSelectedProvince);
+            } else {
+                // ถ้ายังไม่เคยเลือกจังหวัดไหน ให้แสดงข้อมูลทั้งประเทศ
+                updateMSMEInfo(null);
+                drawSizeDistributionDoughnutChart();
+            }
         }
 
         // ฟังก์ชันเมื่อคลิกจังหวัด
         function zoomToFeature(e) {
             map.fitBounds(e.target.getBounds());
+            
+            // บันทึกจังหวัดล่าสุดเมื่อคลิก
+            lastSelectedProvince = e.target.feature.properties;
         }
 
         // เพิ่มฟังก์ชันให้กับแต่ละจังหวัด
@@ -712,30 +778,6 @@
             style: style,
             onEachFeature: onEachFeature
         }).addTo(map);
-
-        // เพิ่ม legend
-        var legend = L.control({position: 'bottomright'});
-
-        legend.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'info legend'),
-                grades = [0, 5000, 8000, 15000, 30000, 60000, 90000, 150000],
-                labels = [],
-                from, to;
-
-            for (var i = 0; i < grades.length; i++) {
-                from = grades[i];
-                to = grades[i + 1];
-
-                labels.push(
-                '<i style="background:' + getColor(from + 1) + '"></i> ' +
-                from.toLocaleString() + (to ? '&ndash;' + to.toLocaleString() : '+'));
-            }
-
-            div.innerHTML = labels.join('<br>');
-            return div;
-        };
-
-        legend.addTo(map);
         
         // อัพเดทข้อมูลเริ่มต้น
         updateMSMEInfo(null);
@@ -753,8 +795,12 @@
                     if (props && props.name && props.name.indexOf(searchText) !== -1) {
                         map.flyToBounds(layer.getBounds(), {duration: 1.5});
                         layer.fire('mouseover');
-                        updateMSMEInfo(props);
-                        drawSizeDistributionDoughnutChart(props);
+                        
+                        // บันทึกจังหวัดล่าสุด
+                        lastSelectedProvince = props;
+                        
+                        updateMSMEInfo(lastSelectedProvince);
+                        drawSizeDistributionDoughnutChart(lastSelectedProvince);
                         found = true;
                     }
                 });
@@ -824,17 +870,20 @@
         function drawSizeDistributionDoughnutChart(provinceData = null) {
             var data, title;
             
-            if (provinceData) {
+            // ใช้จังหวัดล่าสุดถ้ามีการส่งค่าเข้ามา
+            var displayData = provinceData || lastSelectedProvince;
+            
+            if (displayData) {
                 // แสดงข้อมูลจังหวัดที่เลือก
                 data = [
-                    ['ขนาดไมโคร', Number(provinceData.MSME_MICRO_2567)],
-                    ['ขนาดเล็ก', Number(provinceData.MSME_S_2567)],
-                    ['ขนาดกลาง', Number(provinceData.MSME_M_2567)],
-                    ['ขนาดใหญ่', Number(provinceData.MSME_L_2567)]
+                    ['ขนาดไมโคร', Number(displayData.MSME_MICRO_2567)],
+                    ['ขนาดเล็ก', Number(displayData.MSME_S_2567)],
+                    ['ขนาดกลาง', Number(displayData.MSME_M_2567)],
+                    ['ขนาดใหญ่', Number(displayData.MSME_L_2567)]
                 ];
-                title = `สัดส่วนขนาดธุรกิจ: ${provinceData.name}`;
+                title = `สัดส่วนขนาดธุรกิจ: ${displayData.name}`;
             } else {
-                // แสดงข้อมูลรวมทั้งประเทศ
+                // แสดงข้อมูลรวมทั้งประเทศ (เฉพาะเมื่อยังไม่เคยเลือกจังหวัดใด)
                 var totalMicro = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_MICRO_2567), 0);
                 var totalSmall = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_S_2567), 0);
                 var totalMedium = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_M_2567), 0);
@@ -887,6 +936,36 @@
             var chart = new google.visualization.PieChart(document.getElementById('sizeDistributionChart'));
             chart.draw(chartData, options);
         }
+
+        // สร้าง Custom Legend 
+        function createCustomLegend() {
+            var legendDiv = document.createElement('div');
+            legendDiv.className = 'custom-map-legend';
+            
+            var grades = [0, 5000, 8000, 15000, 30000, 60000, 90000, 150000];
+            var labels = [];
+            
+            for (var i = 0; i < grades.length; i++) {
+                var from = grades[i];
+                var to = grades[i + 1];
+                
+                labels.push(
+                    '<div class="legend-item">' +
+                    '<span class="legend-color" style="background:' + getColor(from + 1) + '"></span>' +
+                    '<span class="legend-label">' + from.toLocaleString() + (to ? '&ndash;' + to.toLocaleString() : '+') + '</span>' +
+                    '</div>'
+                );
+            }
+            
+            legendDiv.innerHTML = 
+                '<div class="legend-title">จำนวนธุรกิจ MSME</div>' +
+                labels.join('');
+            
+            document.body.appendChild(legendDiv);
+        }
+
+        // เรียกใช้ฟังก์ชันสร้าง Custom Legend
+        createCustomLegend();
 
         // โหลด Google Charts และสร้างกราฟ
         google.charts.load('current', {packages: ['corechart', 'bar']});
