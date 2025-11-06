@@ -373,7 +373,6 @@
             height: calc(100% - 40px);
         }
 
-        /* Custom Legend ที่ด้านซ้ายของแผนภูมิโดนัท */
         .custom-map-legend {
             position: absolute;
             bottom: 25px;
@@ -910,11 +909,17 @@
             chartData.addColumn('number', 'จำนวน');
             chartData.addColumn({type: 'string', role: 'tooltip'});
             
+            // กำหนดสีสำหรับแต่ละ slice ตามจำนวนธุรกิจ
+            var slicesConfig = {};
+            
             // เพิ่มข้อมูลพร้อม tooltip ที่แสดงจำนวน
-            data.forEach(function(row) {
+            data.forEach(function(row, index) {
                 var percentage = ((row[1] / totalMSME) * 100).toFixed(1);
                 var tooltipText = row[0] + ': ' + format(row[1]) + ' ราย (' + percentage + '%)';
                 chartData.addRow([row[0], row[1], tooltipText]);
+                
+                // กำหนดสีตามจำนวนธุรกิจของแต่ละขนาด
+                slicesConfig[index] = { color: getColor(row[1]) };
             });
             
             var options = {
@@ -925,20 +930,15 @@
                     color: 'white',
                     fontName: 'Prompt',
                     fontSize: 14,
+                    bold: true
                 },
-                slices: {
-                    0: { color: '#08519c' },
-                    1: { color: '#2171b5' },
-                    2: { color: '#4292c6' },
-                    3: { color: '#9ecae1' }
-                },
+                slices: slicesConfig,
                 legend: {
                     position: 'labeled',
                     textStyle: {
                         fontSize: 12,
                         fontName: 'Prompt'
                     },
-                    // legend text ให้แสดงจำนวน
                     labeledValueText: 'value'
                 },
                 tooltip: {
