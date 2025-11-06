@@ -822,13 +822,15 @@
             var top10 = sortedProvinces.slice(0, 10);
             
             // สร้างข้อมูลสำหรับกราฟ
-            var chartData = [['จังหวัด', 'จำนวนธุรกิจ', { role: 'annotation' }]];
+            var chartData = [['จังหวัด', 'จำนวนธุรกิจ', { role: 'annotation' }, { role: 'style' }]];
             
             top10.forEach(function(province) {
+                var color = getColor(province.total);
                 chartData.push([
                     province.name, 
                     province.total, 
                     province.total.toLocaleString() + ' ราย',
+                    'color: ' + color
                 ]);
             });
             
@@ -858,7 +860,7 @@
                 bar: { 
                     groupWidth: '70%' 
                 },
-                colors: ['#1694c6'],
+                // colors: ['#1694c6'],
                 legend: { position: 'none' }
             };
 
@@ -868,7 +870,7 @@
 
         // ฟังก์ชันสร้างแผนภูมิโดนัทแสดงสัดส่วนขนาดธุรกิจ
         function drawSizeDistributionDoughnutChart(provinceData = null) {
-            var data, title;
+            var data, title, totalMSME;
             
             // ใช้จังหวัดล่าสุดถ้ามีการส่งค่าเข้ามา
             var displayData = provinceData || lastSelectedProvince;
@@ -881,9 +883,10 @@
                     ['ขนาดกลาง', Number(displayData.MSME_M_2567)],
                     ['ขนาดใหญ่', Number(displayData.MSME_L_2567)]
                 ];
+                totalMSME = Number(displayData.MSME_TOTAL_2567);
                 title = `สัดส่วนขนาดธุรกิจ: ${displayData.name}`;
             } else {
-                // แสดงข้อมูลรวมทั้งประเทศ (เฉพาะเมื่อยังไม่เคยเลือกจังหวัดใด)
+                // แสดงข้อมูลรวมทั้งประเทศ
                 var totalMicro = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_MICRO_2567), 0);
                 var totalSmall = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_S_2567), 0);
                 var totalMedium = geojson_data.features.reduce((sum, f) => sum + Number(f.properties.MSME_M_2567), 0);
@@ -895,20 +898,34 @@
                     ['ขนาดกลาง', totalMedium],
                     ['ขนาดใหญ่', totalLarge]
                 ];
+                totalMSME = totalMicro + totalSmall + totalMedium + totalLarge;
                 title = 'สัดส่วนขนาดธุรกิจ MSME ทั้งประเทศ';
             }
             
             document.getElementById('doughnutTitle').textContent = title;
             
-            var chartData = google.visualization.arrayToDataTable([
-                ['ขนาด', 'จำนวน'],
-                ...data
-            ]);
+            // สร้าง DataTable พิเศษที่รวมทั้งค่าและ label ที่ต้องการ
+            var chartData = new google.visualization.DataTable();
+            chartData.addColumn('string', 'ขนาด');
+            chartData.addColumn('number', 'จำนวน');
+            chartData.addColumn({type: 'string', role: 'tooltip'});
+            
+            // เพิ่มข้อมูลพร้อม tooltip ที่แสดงจำนวน
+            data.forEach(function(row) {
+                var percentage = ((row[1] / totalMSME) * 100).toFixed(1);
+                var tooltipText = row[0] + ': ' + format(row[1]) + ' ราย (' + percentage + '%)';
+                chartData.addRow([row[0], row[1], tooltipText]);
+            });
             
             var options = {
                 title: '',
                 pieHole: 0.4,
-                pieSliceText: 'value',
+                pieSliceText: 'percentage',
+                pieSliceTextStyle: {
+                    color: 'white',
+                    fontName: 'Prompt',
+                    fontSize: 14,
+                },
                 slices: {
                     0: { color: '#87CEFA' },
                     1: { color: '#87CEEB' },
@@ -920,16 +937,23 @@
                     textStyle: {
                         fontSize: 12,
                         fontName: 'Prompt'
-                    }
+                    },
+                    // legend text ให้แสดงจำนวน
+                    labeledValueText: 'value'
                 },
                 tooltip: {
-                    text: 'percentage'
+                    text: 'value',
+                    showColorCode: true,
+                    textStyle: {
+                        fontName: 'Prompt',
+                        fontSize: 12
+                    }
                 },
                 chartArea: {
-                    left: 20,
-                    top: 20,
-                    width: '90%',
-                    height: '80%'
+                    left: 10,
+                    top: 10,
+                    width: '95%',
+                    height: '85%'
                 }
             };
             
