@@ -927,10 +927,10 @@
                     fontSize: 14,
                 },
                 slices: {
-                    0: { color: '#87CEFA' },
-                    1: { color: '#87CEEB' },
-                    2: { color: '#ccecee' },
-                    3: { color: '#f1f9ff' }
+                    0: { color: '#08519c' },
+                    1: { color: '#2171b5' },
+                    2: { color: '#4292c6' },
+                    3: { color: '#9ecae1' }
                 },
                 legend: {
                     position: 'labeled',
