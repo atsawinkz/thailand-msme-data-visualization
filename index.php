@@ -122,7 +122,6 @@
             margin-left: 10px;
         }
         
-        /* From Uiverse.io by ErzenXz */ 
         .input {
             width: 100%;
             height: 15px;
@@ -221,7 +220,7 @@
         .msmetotal {
             background: #4aa6ff;
             box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
-            grid-column: 1 / -1; /* ทำให้เต็มความกว้าง */
+            grid-column: 1 / -1;
         }
         
         .micro {
@@ -527,7 +526,7 @@
         </div>
     </div>
 
-    <!-- Container สำหรับกราฟ -->
+    <!-- สำหรับกราฟ -->
     <div class="chart-container">
         <div class="chart-title">10 จังหวัดที่มีธุรกิจ MSME มากที่สุด</div>
         <div id="top10Chart"></div>
@@ -859,7 +858,6 @@
                 bar: { 
                     groupWidth: '70%' 
                 },
-                // colors: ['#1694c6'],
                 legend: { position: 'none' }
             };
 
@@ -927,7 +925,7 @@
                 pieHole: 0.4,
                 pieSliceText: 'percentage',
                 pieSliceTextStyle: {
-                    color: 'white',
+                    color: 'black',
                     fontName: 'Prompt',
                     fontSize: 14,
                     bold: true
