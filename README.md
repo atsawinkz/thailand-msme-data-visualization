@@ -1,65 +1,65 @@
-# แผนที่จำนวนธุรกิจ MSME ประเทศไทย ปี 2567
+# Thailand MSME Business Map 2024
 
-Dashboard เชิงโต้ตอบสำหรับแสดงสัดส่วนธุรกิจ MSME (Micro, Small, Medium, Large) ในแต่ละจังหวัดทั่วประเทศไทย ประจำปี พ.ศ. 2567
-
----
-
-## ฟีเจอร์หลัก
-
-- **แผนที่ Choropleth** แบบโต้ตอบ แสดงความหนาแน่นของธุรกิจ MSME แต่ละจังหวัด
-- **Hover & Click** เพื่อดูรายละเอียดข้อมูลแต่ละจังหวัด
-- **ค้นหาจังหวัด** — พิมพ์ชื่อจังหวัดแล้วกด Enter เพื่อซูมไปยังจังหวัดนั้น
-- **กราฟ Top 10** จังหวัดที่มีธุรกิจ MSME มากที่สุด
-- **กราฟโดนัท** แสดงสัดส่วนขนาดธุรกิจของจังหวัดที่เลือก
-- **สถิติ Max/Min** แสดงจังหวัดที่มีธุรกิจมากที่สุดและน้อยที่สุดในแต่ละประเภท
+An interactive dashboard displaying the distribution of MSME (Micro, Small, Medium, Large) businesses across all provinces in Thailand for the year 2024.
 
 ---
 
-## เทคโนโลยีที่ใช้
+## Key Features
 
-| เทคโนโลยี | รายละเอียด |
+- **Interactive Choropleth Map** showing MSME business density by province
+- **Hover & Click** to view detailed information for each province
+- **Province Search** — type a province name and press Enter to zoom to that province
+- **Top 10 Chart** of provinces with the highest number of MSME businesses
+- **Donut Chart** showing the business size breakdown for the selected province
+- **Max/Min Statistics** displaying the provinces with the most and fewest businesses per category
+
+---
+
+## Technologies Used
+
+| Technology | Details |
 |---|---|
-| HTML / CSS / JavaScript | โครงสร้างและตรรกะหลัก |
-| [Leaflet.js](https://leafletjs.com/) v1.9.4 | แสดงผลแผนที่แบบ Interactive |
-| [Google Charts](https://developers.google.com/chart) | กราฟแท่งและกราฟโดนัท |
-| [jQuery](https://jquery.com/) v3.7.1 | โหลดข้อมูล GeoJSON ผ่าน AJAX |
-| [Google Fonts – Prompt](https://fonts.google.com/specimen/Prompt) | ฟอนต์ภาษาไทย |
-| [CartoDB Basemap](https://carto.com/basemaps/) | แผนที่พื้นหลัง |
+| HTML / CSS / JavaScript | Core structure and logic |
+| [Leaflet.js](https://leafletjs.com/) v1.9.4 | Interactive map rendering |
+| [Google Charts](https://developers.google.com/chart) | Bar charts and donut charts |
+| [jQuery](https://jquery.com/) v3.7.1 | Loading GeoJSON data via AJAX |
+| [Google Fonts – Prompt](https://fonts.google.com/specimen/Prompt) | Thai language font |
+| [CartoDB Basemap](https://carto.com/basemaps/) | Base map tiles |
 
 ---
 
-## โครงสร้างไฟล์
+## File Structure
 
 ```
 thmap/
-├── index.html      # ไฟล์หลัก (HTML + CSS + JavaScript)
-└── th_sme.json     # ข้อมูล GeoJSON รายจังหวัด (ขอบเขตแผนที่ + ข้อมูล MSME)
+├── index.html      # Main file (HTML + CSS + JavaScript)
+└── th_sme.json     # GeoJSON data by province (map boundaries + MSME data)
 ```
 
 ---
 
-## วิธีรันในเครื่อง
+## Running Locally
 
-เปิดไฟล์ `index.html` ผ่าน Web Server (เนื่องจากการโหลด GeoJSON ใช้ AJAX)
+Open `index.html` through a Web Server (required because GeoJSON loading uses AJAX).
 
 ```bash
-# ตัวอย่างด้วย Python
+# Example with Python
 python -m http.server 8000
-# จากนั้นเปิด http://localhost:8000
+# Then open http://localhost:8000
 ```
 
-หรือใช้ XAMPP / Live Server Extension บน VS Code
+Or use XAMPP / Live Server Extension on VS Code.
 
 ---
 
-## แหล่งที่มาของข้อมูล
+## Data Source
 
-ข้อมูลจำนวนธุรกิจ MSME ปี พ.ศ. 2567 จาก **สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.)**
+MSME business count data for 2024 from the **Office of Small and Medium Enterprises Promotion (OSMEP)**.
 
-[data.go.th – จำนวนธุรกิจ SME จำแนกตามขนาด](https://data.go.th/dataset/number-of-sme)
+[data.go.th – Number of SME businesses by size](https://data.go.th/dataset/number-of-sme)
 
 ---
 
 ## License
 
-MIT License — ใช้งานได้อย่างอิสระ
+MIT License — Free to use
